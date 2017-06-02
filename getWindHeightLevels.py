@@ -268,10 +268,3 @@ for locat in range(len(lats)):
         writeOutput(lat,lon,interp_levels_m,hour[0],ws1_pnt,wd1_pnt,hour[1],ws2_pnt,wd2_pnt,hour[2],ws3_pnt,wd3_pnt,locat)
 
 
-
-
-
-
-
-
-
