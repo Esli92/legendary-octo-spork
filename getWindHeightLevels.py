@@ -108,14 +108,14 @@ def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,w
         row = []
         row.append(levels[indx])
         row.append(hour1)
+        row.append('{0:0.2f}'.format(wdir1[indx]))
         row.append('{0:0.2f}'.format(wmag1[indx]))
-        row.append(int(wdir1[indx]))
         row.append(hour2)
+        row.append('{0:0.2f}'.format(wdir2[indx]))
         row.append('{0:0.2f}'.format(wmag2[indx]))
-        row.append(int(wdir2[indx]))
         row.append(hour3)
+        row.append('{0:0.2f}'.format(wdir3[indx]))
         row.append('{0:0.2f}'.format(wmag3[indx]))
-        row.append(int(wdir3[indx]))
         mywriter.writerow(row)
         mywriter.writerow(blank)
         
@@ -266,6 +266,5 @@ for locat in range(len(lats)):
         #Write the output file
         
         writeOutput(lat,lon,interp_levels_m,hour[0],ws1_pnt,wd1_pnt,hour[1],ws2_pnt,wd2_pnt,hour[2],ws3_pnt,wd3_pnt,locat)
-
 
 
