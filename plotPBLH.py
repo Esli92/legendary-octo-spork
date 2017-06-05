@@ -7,10 +7,10 @@ from cartopy.feature import NaturalEarthFeature
 from wrf import to_np, getvar, smooth2d, get_cartopy, cartopy_xlim, cartopy_ylim, latlon_coords
 
 # Open the NetCDF file
-ncfile = Dataset("../../../salidas/times.nc")
+ncfile = Dataset("../../../salidas/wrfout_d03_2017-01-19_00:00:00")
 
 # Get the sea level pressure
-slp = getvar(ncfile, "PBLH")
+slp = getvar(ncfile, "PBLH",timeidx=17)
 
 # Smooth the sea level pressure since it tends to be noisy near the mountains
 smooth_slp = slp

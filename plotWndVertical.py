@@ -8,7 +8,7 @@ from netCDF4 import Dataset
 from wrf import to_np, getvar, CoordPair, vertcross
 
 # Open the NetCDF file
-filename = "../../../salidas/times.nc"
+filename = "../../../salidas/wrfout_d03_2017-01-19_00:00:00"
 ncfile = Dataset(filename)
 
 # Extract the model height and wind speed
