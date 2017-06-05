@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Script to ensure required libraries and external commands for the WeatherHills.
+
+function die
+{
+    # Echo message and exit script.
+    # Arguments: optional message, optional exit code
+    echo "${1:-"Unknown Error"}" 1>&2
+    exit ${2:-1}
+}
+
+
+# Test that external executables are present
+conda -V || die "Please install Anaconda or Miniconda from http://continuum.io/downloads into your PATH"
+
+if [ `conda info --envs | grep -c '^pyWRF '` == 0 ]
+then
+  conda create -n pyWRF python=2.7 ipython
+fi
+
+conda install -n pyWRF \
+  wrapt \
+  netcdf4 \
+  matplotlib \
+  xarray \
+  flask=0.10.1 || die "Conda command failed"
+
+. activate pyWRF || die
+conda install -c conda-forge cartopy
+conda install -c conda-forge basemap
+conda install -c conda-forge wrf-python
+. deactivate
+
+echo "Requirements Installed"
