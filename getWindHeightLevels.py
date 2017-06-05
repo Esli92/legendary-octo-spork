@@ -128,28 +128,28 @@ def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,w
     row = []
     row.append(fklevels[0])
     row.append(hour1)
-    row.append('{0:0.2f}'.format(wmedian1))
     row.append('{0:0.2f}'.format(dmedian1))
+    row.append('{0:0.2f}'.format(wmedian1))
     row.append(hour2)
-    row.append('{0:0.2f}'.format(wmedian2))
     row.append('{0:0.2f}'.format(dmedian2))
+    row.append('{0:0.2f}'.format(wmedian2))
     row.append(hour3)
-    row.append('{0:0.2f}'.format(wmedian3))
     row.append('{0:0.2f}'.format(dmedian3))
+    row.append('{0:0.2f}'.format(wmedian3))
     mywriter.writerow(row)
     mywriter.writerow(blank)
     
     row = []
     row.append(fklevels[1])
     row.append(hour1)
-    row.append('{0:0.2f}'.format(wmean1))
     row.append('{0:0.2f}'.format(dmean1))
+    row.append('{0:0.2f}'.format(wmean1))
     row.append(hour2)
-    row.append('{0:0.2f}'.format(wmean2))
     row.append('{0:0.2f}'.format(dmean2))
+    row.append('{0:0.2f}'.format(wmean2))
     row.append(hour3)
-    row.append('{0:0.2f}'.format(wmean3))
     row.append('{0:0.2f}'.format(dmean3))
+    row.append('{0:0.2f}'.format(wmean3))
     mywriter.writerow(row)
     mywriter.writerow(blank)
     
@@ -202,7 +202,7 @@ def median(lst):
 #First open input WRF-output file
 #Make string with file name and then assing to nc file
 
-filestr = '{}times.nc'.format(file_dir)
+filestr = '{}wrfout_d03_2017-01-19_00:00:00'.format(file_dir)
 ncfile = Dataset(filestr)
 
 #Read Lat/Lon data too
@@ -246,7 +246,7 @@ interp_levels = [float(x) / 1000 for x in interp_levels_m]
     
     
 #Time loop
-timevec=[0,1,2]
+timevec=[17,18,19]
 hour = [18,19,20]
 uint = np.zeros((len(timevec),len(interp_levels),30,39))
 vint = np.zeros((len(timevec),len(interp_levels),30,39))
