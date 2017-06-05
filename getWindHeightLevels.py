@@ -233,7 +233,7 @@ for i in range(levels):
     zht[i] = hgt[i][:][:] - tht
 
 #Get PBLH data for each timestep
-PBL = getvar(ncfile,"PBLH",timeidx=0)
+PBL = getvar(ncfile,"PBLH",timeidx=17)
 pbl = to_np(PBL)
     
 #Get the mean PBLH for the transect.
@@ -250,7 +250,7 @@ timevec=[17,18,19]
 hour = [18,19,20]
 uint = np.zeros((len(timevec),len(interp_levels),30,39))
 vint = np.zeros((len(timevec),len(interp_levels),30,39))
-
+indice = 0
 for tim in timevec:
 
     #Unstagger winds to mass points
@@ -282,9 +282,9 @@ for tim in timevec:
 
     #Get the wind profile for the desired station
 
-    uint[tim] = to_np(interp_u)
-    vint[tim] = to_np(interp_v)
-
+    uint[indice] = to_np(interp_u)
+    vint[indice] = to_np(interp_v)
+    indice = indice + 1
     
     
 
