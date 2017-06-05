@@ -18,9 +18,12 @@
 
 #-----------------Version---------------------------------------------------------------
 #v1.0 June/17 Program is created
-
+#v1.2 June/17 Added function to search mean of PBLH in the transect
 #----------------Known issues-----------------------------------------------------------
-
+#ll_to_xy finds values outside of the domain for some reason, for now a hotfix limiting the value to 29
+#was implemented, but needs to be addressed.
+#Requires that wrf_input has only the appropiate hours, but for a 24h or longer output this could be a serious limitation. Would be better if it used the appropiate times.
+#A bash wrapper should be used to prepare the output directory path, file input names and hours. 
 #----------------Dependencies and Libraries----------------------------------------------
 #wrf-python package. 
 #Python 2.7
@@ -94,7 +97,7 @@ def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,w
     "Writes output to file, lat lon are scalars, wmag wdir are vectors"
     filename = './latlonpairs/{}.csv'.format(locat+100)
     wrf_points = open(filename,"w")
-    mywriter = csv.writer(wrf_points, delimiter=' ')
+    mywriter = csv.writer(wrf_points, delimiter='\t')
     latstr = 'Lat={}'.format(lat)
     lonstr = 'Long={}'.format(lon)
     ll_line = [latstr,lonstr]
@@ -121,7 +124,27 @@ def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,w
         
     wrf_points.close()
     
+#======================================================================
+#       FUNCTION = getPBLmean
+#======================================================================
+#This function gets the mean height from the lat/lon pbl points.
+def getPBLmean(ncfile,lats,lons,pbl):
+    "Gets transect points and pbl array, then gets the mean. Assumes its time-independent"
+    pbl_points_list = []
+    for i in range(len(lats)):
+        lat = lats[i]
+        lon = lons[i]
+        X_Y = ll_to_xy(ncfile, lat, lon)
+        x_y = to_np(X_Y)
+        if (x_y[0] > 29):
+            x_y[0] = 29
+        if (x_y[1] > 29):
+            x_y[1] = 29
+        pbl_points_list.append(pbl[x_y[0]][x_y[1]])
     
+    pbl_mean = sum(pbl_points_list) / len(pbl_points_list)
+    
+    return pbl_mean
 #-----------------BEGIN PROGRAM------------------------------------------------------------
 
 #First open input WRF-output file
@@ -161,8 +184,8 @@ for i in range(levels):
 PBL = getvar(ncfile,"PBLH",timeidx=0)
 pbl = to_np(PBL)
     
-#Get the max PBLH for the field.
-pbl_point = np.max(pbl)
+#Get the mean PBLH for the transect.
+pbl_point = int(getPBLmean(ncfile,lats,lons,pbl))
 
 #Create the levels for interpolation, using pblh of station as upper limit
 interp_levels_m = range(10,pbl_point,50)
