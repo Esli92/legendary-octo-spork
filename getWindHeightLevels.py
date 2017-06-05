@@ -93,7 +93,9 @@ def getLatLon(filename):
 #       FUNCTION = writeOutput
 #======================================================================
 #This function writes the output file
-def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,wdir3,locat):
+def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,wdir3,locat,
+                wmean1,dmean1,wmean2,dmean2,wmean3,dmean3,
+                wmedian1,dmedian1,wmedian2,dmedian2,wmedian3,dmedian3,fklevels):
     "Writes output to file, lat lon are scalars, wmag wdir are vectors"
     filename = './latlonpairs/{}.csv'.format(locat+100)
     wrf_points = open(filename,"w")
@@ -122,6 +124,35 @@ def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,w
         mywriter.writerow(row)
         mywriter.writerow(blank)
         
+    #Now write two additional lines, one with the median and the other with the mean of data
+    row = []
+    row.append(fklevels[0])
+    row.append(hour1)
+    row.append('{0:0.2f}'.format(wmedian1))
+    row.append('{0:0.2f}'.format(dmedian1))
+    row.append(hour2)
+    row.append('{0:0.2f}'.format(wmedian2))
+    row.append('{0:0.2f}'.format(dmedian2))
+    row.append(hour3)
+    row.append('{0:0.2f}'.format(wmedian3))
+    row.append('{0:0.2f}'.format(dmedian3))
+    mywriter.writerow(row)
+    mywriter.writerow(blank)
+    
+    row = []
+    row.append(fklevels[1])
+    row.append(hour1)
+    row.append('{0:0.2f}'.format(wmean1))
+    row.append('{0:0.2f}'.format(dmean1))
+    row.append(hour2)
+    row.append('{0:0.2f}'.format(wmean2))
+    row.append('{0:0.2f}'.format(dmean2))
+    row.append(hour3)
+    row.append('{0:0.2f}'.format(wmean3))
+    row.append('{0:0.2f}'.format(dmean3))
+    mywriter.writerow(row)
+    mywriter.writerow(blank)
+    
     wrf_points.close()
     
 #======================================================================
@@ -145,6 +176,27 @@ def getPBLmean(ncfile,lats,lons,pbl):
     pbl_mean = sum(pbl_points_list) / len(pbl_points_list)
     
     return pbl_mean
+
+#======================================================================
+#       FUNCTION = mean
+#======================================================================
+#Simple function to get list mean
+def mean(listData):
+    meanR = sum(listData) / len(listData)
+    return meanR
+
+#======================================================================
+#       FUNCTION = median
+#======================================================================
+#Simple function to get list median
+def median(lst):
+    lst = sorted(lst)
+    if len(lst) < 1:
+            return None
+    if len(lst) %2 == 1:
+            return lst[((len(lst)+1)/2)-1]
+    else:
+            return float(sum(lst[(len(lst)/2)-1:(len(lst)/2)+1]))/2.0
 #-----------------BEGIN PROGRAM------------------------------------------------------------
 
 #First open input WRF-output file
@@ -285,11 +337,33 @@ for locat in range(len(lats)):
         ws3, wd3 = uv2sd(u3,v3)
         ws3_pnt.append(ws3[xindx][yindx])
         wd3_pnt.append(wd3[xindx][yindx])
-            
+        
+        #Get mean of wind magnitude profile and direction
+        ws1_mean = mean(ws1_pnt)
+        wd1_mean = mean(wd1_pnt)
+        
+        ws2_mean = mean(ws2_pnt)
+        wd2_mean = mean(wd2_pnt)
+        
+        ws3_mean = mean(ws3_pnt)
+        wd3_mean = mean(wd3_pnt)
+        
+        #Get median of wind magnitude profile and direction
+        
+        ws1_median = median(ws1_pnt)
+        wd1_median = median(wd1_pnt)
+        
+        ws2_median = median(ws2_pnt)
+        wd2_median = median(wd2_pnt)
+        
+        ws3_median = median(ws3_pnt)
+        wd3_median = median(wd3_pnt)
+    
+        fklevels = [3000,4000]
         #Write the output file
         
-        writeOutput(lat,lon,interp_levels_m,hour[0],ws1_pnt,wd1_pnt,hour[1],ws2_pnt,wd2_pnt,hour[2],ws3_pnt,wd3_pnt,locat)
-
+        writeOutput(lat,lon,interp_levels_m,hour[0],ws1_pnt,wd1_pnt,hour[1],ws2_pnt,wd2_pnt,hour[2],ws3_pnt,wd3_pnt,locat,ws1_mean,wd1_mean,ws2_mean,wd2_mean,ws3_mean,wd3_mean,ws1_median,wd1_median,ws2_median,wd2_median,ws3_median,wd3_median,fklevels)
+     
 
 
 
