@@ -247,7 +247,7 @@ interp_levels = [float(x) / 1000 for x in interp_levels_m]
     
     
 #Time loop
-timevec=range(HOUR_INIT,1,HOUR_FIN)
+timevec=range(HOUR_INIT,HOUR_FIN+1)
 hour = [18,19,20]
 uint = np.zeros((len(timevec),len(interp_levels),30,39))
 vint = np.zeros((len(timevec),len(interp_levels),30,39))
