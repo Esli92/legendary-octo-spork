@@ -33,6 +33,14 @@
 WRF_dir='../../../salidas/'
 FILES='../../../pluma'
 
+if [ ! -d "latlonpairs/" ]
+then
+	mkdir latlonpairs
+else
+        rm -rf latlonpairs
+        mkdir latlonpairs
+fi
+
 for FILE in `ls $FILES`
 do
     #We want the first and last hour record to get starting and ending hour.
@@ -55,6 +63,16 @@ do
     DAY=${DATE:8}
     MONTH=${DATE:5:2}
     
+    #Now comes the interesting part, using sed
+    sed 's:'MONTH':'${MONTH}':g' getWindHeightLevels.py.template > mkDailyFile.py
+    sed 's:'DAY':'${DAY}':g' mkDailyFile.py > mkDailyFile2.py
+    sed 's:'PLUMTEXT':'${FILE}':g' mkDailyFile2.py > mkDailyFile.py
+    sed 's:'HOUR_INIT':'${HOUR_INIT}':g' mkDailyFile.py > mkDailyFile2.py
+    sed 's:'HOUR_FIN':'${HOUR_FIN}':g' mkDailyFile2.py > mkDailyFile.py
+    
+    mkdir latlonpairs/${FILE}
+    python mkDailyFile.py
+    cat latlonpairs/???.csv > latlonpairs/${FILE}/transecto_d${DAY}_m${MONTH}.txt
     
 done
 
