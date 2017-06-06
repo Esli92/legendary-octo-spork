@@ -208,7 +208,7 @@ ncfile = Dataset(filestr)
 
 #Read Lat/Lon data too
 #Make string for files
-geostr = '{}/Toluca_Vis10_20170119.txt'.format(latlon_dir)
+geostr = '{}/PLUMTEXT'.format(latlon_dir)
 #Call function
 lats, lons = getLatLon(geostr)
 
