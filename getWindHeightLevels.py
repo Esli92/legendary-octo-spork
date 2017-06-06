@@ -23,6 +23,7 @@
 #ll_to_xy finds values outside of the domain for some reason, for now a hotfix limiting the value to 29
 #was implemented, but needs to be addressed.
 #Requires that wrf_input has only the appropiate hours, but for a 24h or longer output this could be a serious limitation. Would be better if it used the appropiate times.
+#3 hours were hardcoded, needs to be more portable
 #A bash wrapper should be used to prepare the output directory path, file input names and hours. 
 #----------------Dependencies and Libraries----------------------------------------------
 #wrf-python package. 
@@ -202,7 +203,7 @@ def median(lst):
 #First open input WRF-output file
 #Make string with file name and then assing to nc file
 
-filestr = '{}wrfout_d03_2017-01-19_00:00:00'.format(file_dir)
+filestr = '{}wrfout_d03_2017-MONTH-DAY_00:00:00'.format(file_dir)
 ncfile = Dataset(filestr)
 
 #Read Lat/Lon data too
@@ -233,7 +234,7 @@ for i in range(levels):
     zht[i] = hgt[i][:][:] - tht
 
 #Get PBLH data for each timestep
-PBL = getvar(ncfile,"PBLH",timeidx=17)
+PBL = getvar(ncfile,"PBLH",timeidx=HOUR_INIT)
 pbl = to_np(PBL)
     
 #Get the mean PBLH for the transect.
@@ -246,7 +247,7 @@ interp_levels = [float(x) / 1000 for x in interp_levels_m]
     
     
 #Time loop
-timevec=[17,18,19]
+timevec=range(HOUR_INIT,1,HOUR_FIN)
 hour = [18,19,20]
 uint = np.zeros((len(timevec),len(interp_levels),30,39))
 vint = np.zeros((len(timevec),len(interp_levels),30,39))
@@ -362,7 +363,7 @@ for locat in range(len(lats)):
         fklevels = [3000,4000]
         #Write the output file
         
-        writeOutput(lat,lon,interp_levels_m,hour[0],ws1_pnt,wd1_pnt,hour[1],ws2_pnt,wd2_pnt,hour[2],ws3_pnt,wd3_pnt,locat,ws1_mean,wd1_mean,ws2_mean,wd2_mean,ws3_mean,wd3_mean,ws1_median,wd1_median,ws2_median,wd2_median,ws3_median,wd3_median,fklevels)
+        writeOutput(lat,lon,interp_levels_m,timevec[0]+1,ws1_pnt,wd1_pnt,timevec[1]+1,ws2_pnt,wd2_pnt,timevec[2]+1,ws3_pnt,wd3_pnt,locat,ws1_mean,wd1_mean,ws2_mean,wd2_mean,ws3_mean,wd3_mean,ws1_median,wd1_median,ws2_median,wd2_median,ws3_median,wd3_median,fklevels)
      
 
 
