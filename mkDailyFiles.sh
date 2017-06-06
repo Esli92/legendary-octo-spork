@@ -31,13 +31,31 @@
 
 #-----------------Local directories----------------------------------------------------- 
 WRF_dir='../../../salidas/'
-FILES='/home/esli/Documentos/WRF/experimentos/Toluca/pluma'
+FILES='../../../pluma'
 
 for FILE in `ls $FILES`
 do
-
-    awk -F'\t' '{if (NR != 1) {print $2}}' $FILE > hours.txt 
-    awk -F'\t' '{if (NR == 3) {print $2}}' $FILE > date.txt 
+    #We want the first and last hour record to get starting and ending hour.
+    #First record (no header)
+    awk -F'\t' '{if (NR == 2) {print $2}}' $FILES/$FILE > firstTime.txt 
+    #Last record
+    awk -F'\t' END'{print $2}' $FILES/$FILE > lastTime.txt
+    #Now manipulate the strings to get only the hours
+    FIRST=`head firstTime.txt`
+    LAST=`head lastTime.txt`
+    HOUR_INIT=${FIRST:0:2}
+    HOUR_FIN=${LAST:0:2}
+    #Add one hour, since we need the whole thing
+    HOUR_FIN=$(($HOUR_FIN+1))
+    
+    #Since day should not change, get any of the lines that's not a header. Say 3.
+    awk -F'\t' '{if (NR == 3) {print $1}}' $FILES/$FILE > date.txt 
+    #Get the day and month from the date string
+    DATE=`head date.txt`
+    DAY=${DATE:8}
+    MONTH=${DATE:5:2}
+    
+    
 done
 
 
