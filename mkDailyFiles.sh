@@ -73,6 +73,7 @@ do
     mkdir latlonpairs/${FILE}
     python mkDailyFile.py
     cat latlonpairs/???.csv > latlonpairs/${FILE}/transecto_d${DAY}_m${MONTH}.txt
+    rm latlonpairs/???.csv
     
 done
 
