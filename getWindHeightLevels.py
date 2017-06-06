@@ -19,12 +19,13 @@
 #-----------------Version---------------------------------------------------------------
 #v1.0 June/17 Program is created
 #v1.2 June/17 Added function to search mean of PBLH in the transect
+#v1.3 June/17 Simplified how writeOutput works, now it can receive an arbitrary number of hours
 #----------------Known issues-----------------------------------------------------------
 #ll_to_xy finds values outside of the domain for some reason, for now a hotfix limiting the value to 29
 #was implemented, but needs to be addressed.
-#Requires that wrf_input has only the appropiate hours, but for a 24h or longer output this could be a serious limitation. Would be better if it used the appropiate times.
-#3 hours were hardcoded, needs to be more portable
-#A bash wrapper should be used to prepare the output directory path, file input names and hours. 
+#(FIXED) Requires that wrf_input has only the appropiate hours, but for a 24h or longer output this could be a serious limitation. Would be better if it used the appropiate times.
+#(FIXED) 3 hours were hardcoded, needs to be more portable
+#(FIXED) A bash wrapper should be used to prepare the output directory path, file input names and hours. 
 #----------------Dependencies and Libraries----------------------------------------------
 #wrf-python package. 
 #Python 2.7
@@ -94,9 +95,9 @@ def getLatLon(filename):
 #       FUNCTION = writeOutput
 #======================================================================
 #This function writes the output file
-def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,wdir3,locat,
-                wmean1,dmean1,wmean2,dmean2,wmean3,dmean3,
-                wmedian1,dmedian1,wmedian2,dmedian2,wmedian3,dmedian3,fklevels):
+def writeOutput(lat,lon,levels,hour,wmag,wdir,locat,
+                wmean,dmean,
+                wmedian,dmedian,fklevels):
     "Writes output to file, lat lon are scalars, wmag wdir are vectors"
     filename = './latlonpairs/{}.csv'.format(locat+100)
     wrf_points = open(filename,"w")
@@ -104,56 +105,54 @@ def writeOutput(lat,lon,levels,hour1,wmag1,wdir1,hour2,wmag2,wdir2,hour3,wmag3,w
     latstr = 'Lat={}'.format(lat)
     lonstr = 'Long={}'.format(lon)
     ll_line = [latstr,lonstr]
-    header = ["Altitude","Hour","WD[deg]","WS[m/s]","Hour","WD[deg]","WS[m/s]","Hour","WD[deg]","WS[m/s]"]
+    header_1st = ["Altitude","Hour","WD[deg]","WS[m/s]"]
+    header_more = ["Hour","WD[deg]","WS[m/s]"]
+    #Prepare headers to reflect number of hours
+    header = header_1st
+    for t in range(len(hour)-1):
+        header = header + header_more
     blank = ''
     mywriter.writerow(ll_line)
     mywriter.writerow(blank)
     mywriter.writerow(header)
     mywriter.writerow(blank)
-    for indx in range(len(wmag1)):
+    #Now iterate on the hours
+    hgts = wmag.shape[1]
+    
+    for indx in range(hgts):
         row = []
-        row.append(levels[indx])
-        row.append(hour1)
-        row.append('{0:0.2f}'.format(wdir1[indx]))
-        row.append('{0:0.2f}'.format(wmag1[indx]))
-        row.append(hour2)
-        row.append('{0:0.2f}'.format(wdir2[indx]))
-        row.append('{0:0.2f}'.format(wmag2[indx]))
-        row.append(hour3)
-        row.append('{0:0.2f}'.format(wdir3[indx]))
-        row.append('{0:0.2f}'.format(wmag3[indx]))
+        t = 0
+        for time in hour:
+            row.append(levels[indx])
+            row.append(time)
+            row.append('{0:0.2f}'.format(wdir[t][indx]))
+            row.append('{0:0.2f}'.format(wmag[t][indx]))
+            t = t + 1
+    
         mywriter.writerow(row)
         mywriter.writerow(blank)
+    
+    #Now to add the last two levels
+    rowmed = []
+    rowmea = []
+    t = 0
+    for time in hour:
+        rowmed.append(fklevels[0])
+        rowmed.append(time)
+        rowmed.append('{0:0.2f}'.format(dmedian[t]))
+        rowmed.append('{0:0.2f}'.format(wmedian[t]))
         
-    #Now write two additional lines, one with the median and the other with the mean of data
-    row = []
-    row.append(fklevels[0])
-    row.append(hour1)
-    row.append('{0:0.2f}'.format(dmedian1))
-    row.append('{0:0.2f}'.format(wmedian1))
-    row.append(hour2)
-    row.append('{0:0.2f}'.format(dmedian2))
-    row.append('{0:0.2f}'.format(wmedian2))
-    row.append(hour3)
-    row.append('{0:0.2f}'.format(dmedian3))
-    row.append('{0:0.2f}'.format(wmedian3))
-    mywriter.writerow(row)
+        rowmea.append(fklevels[1])
+        rowmea.append(time)
+        rowmea.append('{0:0.2f}'.format(dmean[t]))
+        rowmea.append('{0:0.2f}'.format(wmean[t]))
+        
+        t = t + 1
+        
+    mywriter.writerow(rowmed)
     mywriter.writerow(blank)
-    
-    row = []
-    row.append(fklevels[1])
-    row.append(hour1)
-    row.append('{0:0.2f}'.format(dmean1))
-    row.append('{0:0.2f}'.format(wmean1))
-    row.append(hour2)
-    row.append('{0:0.2f}'.format(dmean2))
-    row.append('{0:0.2f}'.format(wmean2))
-    row.append(hour3)
-    row.append('{0:0.2f}'.format(dmean3))
-    row.append('{0:0.2f}'.format(wmean3))
-    mywriter.writerow(row)
+    mywriter.writerow(rowmea)
     mywriter.writerow(blank)
-    
     wrf_points.close()
     
 #======================================================================
@@ -203,12 +202,12 @@ def median(lst):
 #First open input WRF-output file
 #Make string with file name and then assing to nc file
 
-filestr = '{}wrfout_d03_2017-MONTH-DAY_00:00:00'.format(file_dir)
+filestr = '{}wrfout_d03_2017-02-23_00:00:00'.format(file_dir)
 ncfile = Dataset(filestr)
 
 #Read Lat/Lon data too
 #Make string for files
-geostr = '{}/PLUMTEXT'.format(latlon_dir)
+geostr = '{}/Toluca_Vis37_20170223.txt'.format(latlon_dir)
 #Call function
 lats, lons = getLatLon(geostr)
 
@@ -234,21 +233,21 @@ for i in range(levels):
     zht[i] = hgt[i][:][:] - tht
 
 #Get PBLH data for each timestep
-PBL = getvar(ncfile,"PBLH",timeidx=HOUR_INIT)
+PBL = getvar(ncfile,"PBLH",timeidx=19)
 pbl = to_np(PBL)
     
 #Get the mean PBLH for the transect.
 pbl_point = int(getPBLmean(ncfile,lats,lons,pbl))
 
 #Create the levels for interpolation, using pblh of station as upper limit
-interp_levels_m = range(10,pbl_point,50)
+interp_levels_m = range(100,pbl_point,50)
 #interp_field function expects the levels to be in Km, so we need to convert
 interp_levels = [float(x) / 1000 for x in interp_levels_m]
     
     
 #Time loop
-timevec=range(HOUR_INIT,1,HOUR_FIN)
-hour = [18,19,20]
+timevec=range(HOUR_INIT,HOUR_FIN+1)
+
 uint = np.zeros((len(timevec),len(interp_levels),30,39))
 vint = np.zeros((len(timevec),len(interp_levels),30,39))
 indice = 0
@@ -308,62 +307,40 @@ for locat in range(len(lats)):
     if (yindx > 29):
         yinx = 29
     
-    ws1_pnt = []
-    wd1_pnt = []
-    ws2_pnt = []
-    wd2_pnt = []
-    ws3_pnt = []
-    wd3_pnt = []
-        
-
-    #Loop in heights 
-    for i in range(uint.shape[1]):
-        u1 = uint[0][i][:][:]
-        v1 = vint[0][i][:][:]
-        #Transform from U V to speed and direction (meteorological)
-        ws1, wd1 = uv2sd(u1,v1)
-        ws1_pnt.append(ws1[xindx][yindx])
-        wd1_pnt.append(wd1[xindx][yindx])
-        #Time2
-        u2 = uint[1][i][:][:]
-        v2 = vint[1][i][:][:]
-        #Transform from U V to speed and direction (meteorological)
-        ws2, wd2 = uv2sd(u2,v2)
-        ws2_pnt.append(ws2[xindx][yindx])
-        wd2_pnt.append(wd2[xindx][yindx])
-        #Time3
-        u3 = uint[2][i][:][:]
-        v3 = vint[2][i][:][:]
-        #Transform from U V to speed and direction (meteorological)
-        ws3, wd3 = uv2sd(u3,v3)
-        ws3_pnt.append(ws3[xindx][yindx])
-        wd3_pnt.append(wd3[xindx][yindx])
-        
-        #Get mean of wind magnitude profile and direction
-        ws1_mean = mean(ws1_pnt)
-        wd1_mean = mean(wd1_pnt)
-        
-        ws2_mean = mean(ws2_pnt)
-        wd2_mean = mean(wd2_pnt)
-        
-        ws3_mean = mean(ws3_pnt)
-        wd3_mean = mean(wd3_pnt)
-        
-        #Get median of wind magnitude profile and direction
-        
-        ws1_median = median(ws1_pnt)
-        wd1_median = median(wd1_pnt)
-        
-        ws2_median = median(ws2_pnt)
-        wd2_median = median(wd2_pnt)
-        
-        ws3_median = median(ws3_pnt)
-        wd3_median = median(wd3_pnt)
     
-        fklevels = [3000,4000]
-        #Write the output file
+    
+    #Make arrays to store ws,wd for all times    
+    ws = np.zeros((len(timevec),uint.shape[1]))
+    wd = np.zeros((len(timevec),uint.shape[1]))
+    
+    #Loop in heights and times
+    for k in range(len(timevec)):
         
-        writeOutput(lat,lon,interp_levels_m,timevec[0]+1,ws1_pnt,wd1_pnt,timevec[1]+1,ws2_pnt,wd2_pnt,timevec[2]+1,ws3_pnt,wd3_pnt,locat,ws1_mean,wd1_mean,ws2_mean,wd2_mean,ws3_mean,wd3_mean,ws1_median,wd1_median,ws2_median,wd2_median,ws3_median,wd3_median,fklevels)
+        ws_pnt = []
+        wd_pnt = []
+        
+        for i in range(uint.shape[1]):
+            u = uint[k][i][:][:]
+            v = vint[k][i][:][:]
+            #Transform from U V to speed and direction (meteorological)
+            wsm, wdm = uv2sd(u,v)
+            ws_pnt.append(wsm[xindx][yindx])
+            wd_pnt.append(wdm[xindx][yindx])
+            
+        ws[k] = ws_pnt 
+        wd[k] = wd_pnt
+            
+        ws_mean = np.nanmean(ws,1)
+        wd_mean = np.nanmean(wd,1)
+        
+        ws_median = np.nanmedian(ws,1)
+        wd_median = np.nanmedian(wd,1) 
+            
+        
+    fklevels = [3000,4000]
+    #Write the output file
+        
+    writeOutput(lat,lon,interp_levels_m,timevec,ws,wd,locat,ws_mean,wd_mean,ws_median,wd_median,fklevels)
      
 
 
