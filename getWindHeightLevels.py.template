@@ -123,7 +123,9 @@ def writeOutput(lat,lon,levels,hour,wmag,wdir,locat,
         row = []
         t = 0
         for time in hour:
-            row.append(levels[indx])
+            if (t == 0):
+                row.append(levels[indx])
+                
             row.append(time)
             row.append('{0:0.2f}'.format(wdir[t][indx]))
             row.append('{0:0.2f}'.format(wmag[t][indx]))
