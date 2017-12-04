@@ -12,8 +12,7 @@ from cartopy.feature import NaturalEarthFeature
 #Set filename
 ncfile = Dataset("out.nc")
 
-u = getvar(ncfile,'U10',meta=False,timeidx=10)
-v = getvar(ncfile,'V10',meta=False,timeidx=10)
+
 
 #u10 = getvar(ncfile,'U10',timeidx=0)
 #v10 = getvar(ncfile,'V10',timeidx=0)
@@ -24,24 +23,32 @@ gradb = np.gradient(b)
 dx = gradb[0]
 dy = gradb[1]
 
-#Now make vectors of what we want to operate on, using reshape
-dimA = u.shape[0]
-dimB = u.shape[1]
-dimC = dimA * dimB
-urs = np.reshape(u,dimC)
-vrs = np.reshape(v,dimC)
-dxrs = np.reshape(dx,dimC)
-dyrs = np.reshape(dy,dimC)
+#Begin time loop
+timevec=range(0,121)
 
-vel = np.stack((urs,vrs),axis=-1)
-grb = np.stack((dxrs,dyrs),axis=-1)
+for tim in timevec:
 
-vdotgb = []
-for line in range(len(vel)):
-    dotp = np.dot(vel[line],grb[line])
-    vdotgb.append(dotp)
-    
-vdotb = np.reshape(vdotgb,[dimA,dimB])
+    u = getvar(ncfile,'U10',meta=False,timeidx=tim)
+    v = getvar(ncfile,'V10',meta=False,timeidx=tim)
+
+    #Now make vectors of what we want to operate on, using reshape
+    dimA = u.shape[0]
+    dimB = u.shape[1]
+    dimC = dimA * dimB
+    urs = np.reshape(u,dimC)
+    vrs = np.reshape(v,dimC)
+    dxrs = np.reshape(dx,dimC)
+    dyrs = np.reshape(dy,dimC)
+
+    vel = np.stack((urs,vrs),axis=-1)
+    grb = np.stack((dxrs,dyrs),axis=-1)
+
+    vdotgb = []
+    for line in range(len(vel)):
+        dotp = np.dot(vel[line],grb[line])
+        vdotgb.append(dotp)
+        
+    vdotb = np.reshape(vdotgb,[dimA,dimB])
 
 
 # PLOTTING SECTION
