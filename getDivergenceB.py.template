@@ -10,9 +10,9 @@ from matplotlib.cm import get_cmap
 import cartopy.crs as crs
 from cartopy.feature import NaturalEarthFeature
 #Set filename
-ncfile = Dataset("../dataFiles/wrfout_d03_2017-02-24_00:00:00")
+ncfile = Dataset("../dataFiles/FILE")
 #Open new file for result
-newfile = Dataset("netcdf_div/DIV-wrfout_d03_2017-02-24_00:00:00.nc","w",format="NETCDF4")    
+newfile = Dataset("netcdf_div/DIV-FILE.nc","w",format="NETCDF4")    
 
 n_tim = len(ncfile.dimensions["Time"])
 n_lat = len(ncfile.dimensions["south_north"])
